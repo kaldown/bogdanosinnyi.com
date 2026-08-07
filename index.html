@@ -65,6 +65,9 @@ h2{font-family:var(--serif);font-size:34px;font-weight:500;margin:0}
 .section-intro{font-size:15px;line-height:1.6;color:var(--muted);max-width:560px;margin:0 0 36px}
 .project{display:flex;gap:40px;padding:28px 0;border-top:1px solid var(--line);align-items:center}
 .project:last-of-type{border-bottom:1px solid var(--line)}
+#work{counter-reset:project}
+.project{counter-increment:project}
+.project-num::before{content:counter(project,decimal-leading-zero)}
 .project-num{font-family:var(--serif);font-style:italic;font-size:18px;color:var(--accent);width:32px;flex:none}
 .project-body{flex:1}
 h3{font-family:var(--serif);font-size:24px;font-weight:400;margin:0 0 6px}
@@ -72,6 +75,16 @@ h3{font-family:var(--serif);font-size:24px;font-weight:400;margin:0 0 6px}
 .project-media{width:300px;flex:none;border-radius:4px;border:1px solid var(--line);overflow:hidden}
 .project-media img{width:100%}
 .placeholder{height:120px;background:repeating-linear-gradient(45deg,#F1ECDF,#F1ECDF 10px,var(--bg) 10px,var(--bg) 20px);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;color:var(--faint)}
+.proof-strip{margin-top:28px;font-size:13px;color:var(--muted);letter-spacing:.04em}
+.proof-strip a{color:var(--accent)}
+.more-projects{margin-top:22px;border-top:1px solid var(--line);padding-top:18px}
+.more-projects summary{cursor:pointer;font-family:var(--serif);font-style:italic;font-size:17px;color:var(--accent)}
+.more-projects summary:hover{color:var(--ink)}
+.mini-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-top:18px}
+.mini-card{background:var(--card);border-radius:4px;padding:16px}
+.mini-card .tag{font-family:var(--mono);font-size:10.5px;color:var(--faint);letter-spacing:.05em;text-transform:uppercase}
+.mini-card h4{font-family:var(--serif);font-size:16.5px;font-weight:400;margin:6px 0 4px}
+.mini-card p{font-size:13px;line-height:1.55;color:var(--muted);margin:0}
 /* Two-column prose rows */
 .prose-row{display:flex;gap:56px;padding:0 0 56px}
 .prose-label{flex:1;font-family:var(--serif);font-style:italic;font-size:26px;color:var(--accent);line-height:1.3}
@@ -149,24 +162,33 @@ h3{font-family:var(--serif);font-size:24px;font-weight:400;margin:0 0 6px}
 <main>
 <section class="wrap section-pad" id="work">
   <div class="h2row"><h2>Problems I automated away</h2><a href="https://github.com/kaldown" target="_blank" rel="noopener" style="font-size:13px">more on GitHub →</a></div>
-  <p class="section-intro">Most of my side projects start the same way: a small daily annoyance, automated for good. It keeps me learning — and it keeps dinner interesting.</p>
+  <p class="section-intro">Most of my work starts the same way: a human problem, automated for good. Some of it ships to production for clients; some of it ships to 32,000 strangers for free.</p>
+
+  <!-- To add a project: copy any <article class="project"> block below, edit the
+       text, and place it where you want it — numbering is automatic (CSS counter).
+       The media block (image/video link) is optional; rows work without it. -->
 
   <article class="project">
-    <span class="project-num">01</span>
+    <span class="project-num" aria-hidden="true"></span>
     <div class="project-body">
-      <h3><a href="https://github.com/kaldown/lazycoupon" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">lazycoupon — the pizza bot</a></h3>
-      <p>A fully autonomous app that books my daily discounted pizza: it clicks through a heavy JavaScript site using QA tooling, calls via a temporary phone number, and leaves my address. Started as a proof of concept for the simplest possible backend-to-frontend messaging. Ended as dinner. <a href="https://youtu.be/8_-wekj8vBs" target="_blank" rel="noopener">Watch it run ↗</a></p>
+      <h3>The fintech engagement</h3>
+      <p>I'm the senior engineer carrying a fintech product — architecture, backend, releases, and the AI tooling around them. It's the third finance product in a row I've worked on, and the reason this page is short on named details: the interesting parts are under NDA. Ask me on a call.</p>
     </div>
-    <a class="project-media" href="https://youtu.be/8_-wekj8vBs" target="_blank" rel="noopener" aria-label="lazycoupon demo video on YouTube">
-      <img src="https://img.youtube.com/vi/8_-wekj8vBs/hqdefault.jpg" alt="lazycoupon demo video" loading="lazy">
-    </a>
   </article>
 
   <article class="project">
-    <span class="project-num">02</span>
+    <span class="project-num" aria-hidden="true"></span>
+    <div class="project-body">
+      <h3>AI workflow automation, before it was fashionable</h3>
+      <p>I automated my team's delivery workflow with LLM layers — GitLab tasks created, labeled and tracked; Slack posts written; pipelines followed — running as standalone binaries, half a year before MCP made this everyone's favorite topic. A full write-up is coming; the short version fits in a call.</p>
+    </div>
+  </article>
+
+  <article class="project">
+    <span class="project-num" aria-hidden="true"></span>
     <div class="project-body">
       <h3><a href="https://github.com/kaldown/ccpm" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">ccpm — plugin manager for Claude Code</a></h3>
-      <p>A fast terminal UI in Rust for browsing, installing and updating Claude Code plugins. <a href="https://github.com/kaldown/ccpm" target="_blank" rel="noopener">Open source</a>, 48★ and growing.</p>
+      <p>A fast terminal UI in Rust for browsing, installing and updating Claude Code plugins. My most-starred <a href="https://github.com/kaldown/ccpm" target="_blank" rel="noopener">open-source project</a> — written in a language I'd never claim on a CV, which is rather the point.</p>
     </div>
     <a class="project-media" href="https://github.com/kaldown/ccpm" target="_blank" rel="noopener" aria-label="ccpm on GitHub">
       <img src="https://raw.githubusercontent.com/kaldown/ccpm/main/docs/images/ccpm_thumbnail.png" alt="ccpm terminal UI" loading="lazy" style="background:#111">
@@ -174,24 +196,50 @@ h3{font-family:var(--serif);font-size:24px;font-weight:400;margin:0 0 6px}
   </article>
 
   <article class="project">
-    <span class="project-num">03</span>
+    <span class="project-num" aria-hidden="true"></span>
     <div class="project-body">
-      <h3>Summarizer — my news, in minutes</h3>
-      <p>I wanted news as summaries sorted by what I actually care about, instead of an hour of scrolling. So I built it. The code is private — happy to walk through it on a call.</p>
+      <h3><a href="https://github.com/kaldown/lazycoupon" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">lazycoupon — the pizza bot</a></h3>
+      <p>A fully autonomous agent that books my daily discounted pizza: it drives a heavy JavaScript site with QA tooling, calls the restaurant through a temporary phone number, and leaves my address. Autonomous browsing, telephony and a real-world result — built years before "agents" were a product category. <a href="https://youtu.be/8_-wekj8vBs" target="_blank" rel="noopener">Watch it run ↗</a></p>
     </div>
-    <!-- TODO: replace placeholder with real screenshot at assets/summarizer.png -->
-    <div class="project-media"><div class="placeholder">product screenshot</div></div>
+    <a class="project-media" href="https://youtu.be/8_-wekj8vBs" target="_blank" rel="noopener" aria-label="lazycoupon demo video on YouTube">
+      <img src="https://img.youtube.com/vi/8_-wekj8vBs/hqdefault.jpg" alt="lazycoupon demo video" loading="lazy">
+    </a>
   </article>
 
   <article class="project">
-    <span class="project-num">04</span>
+    <span class="project-num" aria-hidden="true"></span>
     <div class="project-body">
-      <h3><a href="https://www.curseforge.com/wow/addons/lazyprof" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">LazyProf &amp; friends — WoW economics addons</a></h3>
-      <p>A family of World of Warcraft addons around in-game finance. LazyProf plans the cheapest path to level any profession — 30,000+ downloads on <a href="https://www.curseforge.com/members/kaldown/projects" target="_blank" rel="noopener">CurseForge</a>. Source on <a href="https://github.com/kaldown/LazyProf" target="_blank" rel="noopener">GitHub</a>.</p>
+      <h3><a href="https://www.curseforge.com/wow/addons/lazyprof" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">In-game economics — 32,000+ downloads</a></h3>
+      <p>World of Warcraft developers told me a global database of in-game items didn't exist and couldn't be built. So I built the parser, shipped the database as <a href="https://github.com/kaldown/CraftLib" target="_blank" rel="noopener">CraftLib</a> — a public library the community builds on — and proved it with <a href="https://github.com/kaldown/LazyProf" target="_blank" rel="noopener">LazyProf</a>, which plans the cheapest path to level any profession. Together with a peer-to-peer guild auction house (lots, queues, voting), that's 32,000+ downloads of in-game finance tools — all in Lua, another language I never formally learned.</p>
     </div>
-    <!-- TODO: replace placeholder with real screenshot at assets/lazyprof.png -->
-    <div class="project-media"><div class="placeholder">addon screenshot</div></div>
+    <!-- media: add assets/lazyprof.png when Bogdan provides it (see launch checklist) -->
   </article>
+
+  <article class="project">
+    <span class="project-num" aria-hidden="true"></span>
+    <div class="project-body">
+      <h3>Built for the people around me</h3>
+      <p>Some of my favorite systems were built free, for people I care about — a full platform for a friend because the problem was interesting, and working products for my wife's projects. Real users, real stakes, no invoice. Details on a call, or in the list below.</p>
+    </div>
+  </article>
+
+  <p class="proof-strip">Open source, merged: <a href="https://github.com/googleapis/mcp-toolbox/pull/3052" target="_blank" rel="noopener">Google's MCP Toolbox</a> · <a href="https://github.com/python-trio/trio/pull/1527" target="_blank" rel="noopener">python-trio</a> · <a href="https://github.com/search?q=author%3Akaldown+is%3Apr+is%3Amerged+-user%3Akaldown&type=pullrequests" target="_blank" rel="noopener">and more</a></p>
+
+  <details class="more-projects">
+    <summary>More projects — the long tail</summary>
+    <!-- To add a card: copy a .mini-card div. The grid stretches automatically. -->
+    <div class="mini-grid">
+      <div class="mini-card"><span class="tag">Python · private</span><h4>Summarizer</h4><p>My news as ranked summaries instead of an hour of scrolling. Private code — happy to walk through it on a call.</p></div>
+      <div class="mini-card"><span class="tag">Go · Dart · JS</span><h4><a href="https://github.com/kaldown/hunger" target="_blank" rel="noopener">hunger</a></h4><p>gRPC server with Flutter mobile and web clients — a 2019 full-stack trilogy.</p></div>
+      <div class="mini-card"><span class="tag">Python</span><h4><a href="https://github.com/kaldown/db2-parser" target="_blank" rel="noopener">db2-parser</a></h4><p>The parser behind CraftLib — extracts crafting data from WoW's binary DB2 tables.</p></div>
+      <div class="mini-card"><span class="tag">Lua</span><h4><a href="https://github.com/kaldown/EyesOnMe" target="_blank" rel="noopener">EyesOnMe</a></h4><p>PvP awareness addon — detects enemy players around you in WoW Classic.</p></div>
+      <div class="mini-card"><span class="tag">Lua</span><h4><a href="https://github.com/kaldown/Silencer" target="_blank" rel="noopener">Silencer</a></h4><p>Whisper gatekeeper — a keyword filter for WoW Classic inboxes.</p></div>
+      <div class="mini-card"><span class="tag">Lua</span><h4><a href="https://github.com/kaldown/VendorSniper" target="_blank" rel="noopener">VendorSniper</a></h4><p>Never miss a limited-supply vendor restock again.</p></div>
+      <div class="mini-card"><span class="tag">Shell</span><h4><a href="https://github.com/kaldown/dotfiles" target="_blank" rel="noopener">dotfiles</a></h4><p>My environment, versioned.</p></div>
+      <div class="mini-card"><span class="tag">Python</span><h4><a href="https://github.com/kaldown/pdf-to-text" target="_blank" rel="noopener">pdf-to-text</a></h4><p>Text-to-voice tool with an async core.</p></div>
+      <div class="mini-card"><span class="tag">merged elsewhere</span><h4><a href="https://github.com/search?q=author%3Akaldown+is%3Apr+is%3Amerged+-user%3Akaldown&type=pullrequests" target="_blank" rel="noopener">Contributions</a></h4><p>TrinketMenu (WoW TBC compat), undotree (vim), public-apis, and friends.</p></div>
+    </div>
+  </details>
 </section>
 
 <section class="wrap" id="about">
