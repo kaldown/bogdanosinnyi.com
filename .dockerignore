@@ -1,0 +1,12 @@
+.claude/
+.superpowers/
+CLAUDE.md
+CLAUDE.local.md
+*.zip
+*.log
+.env*
+.DS_Store
+Thumbs.db
+.idea/
+.git/
+.gitignore

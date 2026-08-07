@@ -1,0 +1,15 @@
+# LLM working artifacts — this repo is public
+.claude/
+.superpowers/
+CLAUDE.md
+CLAUDE.local.md
+
+# archives & scratch
+*.zip
+*.log
+.env*
+
+# OS junk / editors
+.DS_Store
+Thumbs.db
+.idea/
