@@ -63,13 +63,13 @@ h1{font-family:var(--serif);font-size:clamp(32px,4vw,46px);line-height:1.1;font-
     <h1>One senior engineer, full technical ownership.</h1>
     <p>Pick a slot below — 30 minutes, no obligation. Bring your hardest problem; we'll see if we're a fit.</p>
     <ul class="points">
-      <li><span><b>10 years</b> shipping production software, currently sole engineer behind a fintech product</span></li>
-      <li><span><b>AI-native</b> workflows — I build with and around Claude Code daily</span></li>
-      <li><span><b>Remote from Barcelona</b> (CET) — overlaps US mornings, full EU/UK day</span></li>
+      <li><span><b>10 years</b> shipping production software — currently the senior engineer carrying a fintech product</span></li>
+      <li><span><b>AI automation</b> built into real delivery workflows — since before it was fashionable</span></li>
+      <li><span><b>Remote from Barcelona</b> (CET) — overlaps US mornings, full EU/UK day. Simple B2B invoicing, no agency in between</span></li>
     </ul>
+    <p style="font-size:14px;color:var(--muted);margin:-8px 0 28px"><b style="color:var(--ink)">On this call:</b> you bring the problem, I ask questions, we sketch what a solution could look like. If we fit, you get a short written proposal within days. No pitch, no slides.</p>
     <div class="who">
-      <!-- TODO: swap src to assets/portrait.jpg (same file as index.html) -->
-      <img src="https://bogdanosinnyi.carrd.co/assets/images/image01.jpg" alt="Bogdan Osinnyi">
+      <img src="/assets/portrait.jpg" alt="Bogdan Osinnyi">
       <div><div class="name">Bogdan Osinnyi</div><div class="role">bogdanosinnyi.com · <a href="https://www.linkedin.com/in/bogdanosinnyi/" target="_blank" rel="noopener">LinkedIn</a></div></div>
     </div>
   </div>
@@ -77,14 +77,26 @@ h1{font-family:var(--serif);font-size:clamp(32px,4vw,46px);line-height:1.1;font-
   <div class="sched">
     <!-- Calendly inline embed -->
     <div class="calendly-inline-widget" data-url="https://calendly.com/bogdanosinnyi?primary_color=8a6d1f" style="min-width:320px;height:660px"></div>
+    <script>
+/* Forward utm_* params into the Calendly embed so bookings carry their source. */
+(function () {
+  var w = document.querySelector(".calendly-inline-widget");
+  var qs = new URLSearchParams(location.search);
+  var utm = [];
+  qs.forEach(function (v, k) { if (k.indexOf("utm_") === 0) utm.push(k + "=" + encodeURIComponent(v)); });
+  if (w && utm.length) {
+    w.setAttribute("data-url", w.getAttribute("data-url") + "&" + utm.join("&"));
+  }
+})();
+</script>
     <script src="https://assets.calendly.com/assets/external/widget.js" async></script>
-    <noscript><div class="fallback">The scheduler needs JavaScript. You can also book directly at <a href="https://calendly.com/bogdanosinnyi">calendly.com/bogdanosinnyi</a> or email <a href="mailto:kaldownj@gmail.com">kaldownj@gmail.com</a>.</div></noscript>
+    <noscript><div class="fallback">The scheduler needs JavaScript. You can also book directly at <a href="https://calendly.com/bogdanosinnyi">calendly.com/bogdanosinnyi</a> or email <a href="mailto:hello@bogdanosinnyi.com">hello@bogdanosinnyi.com</a>.</div></noscript>
   </div>
 </main>
 
 <footer class="footer">
   <span>© 2026 Bogdan Osinnyi</span>
-  <span><a href="mailto:kaldownj@gmail.com">kaldownj@gmail.com</a> · <a href="https://www.linkedin.com/in/bogdanosinnyi/" target="_blank" rel="noopener">LinkedIn</a> · <a href="https://github.com/kaldown" target="_blank" rel="noopener">GitHub</a></span>
+  <span><a href="mailto:hello@bogdanosinnyi.com">hello@bogdanosinnyi.com</a> · <a href="https://www.linkedin.com/in/bogdanosinnyi/" target="_blank" rel="noopener">LinkedIn</a> · <a href="https://github.com/kaldown" target="_blank" rel="noopener">GitHub</a></span>
 </footer>
 
 </body>
