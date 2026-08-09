@@ -44,8 +44,8 @@ section, footer, header{scroll-margin-top:88px}
 .nav-in{display:flex;justify-content:space-between;align-items:center;padding:18px 56px;max-width:1180px;margin:0 auto}
 .nav-name{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);text-decoration:none}
 .nav-links{display:flex;gap:28px;align-items:center;font-size:14px}
-.nav-links a{color:var(--muted);text-decoration:none}
-.nav-links a:hover{color:var(--ink)}
+.nav-links a:not(.btn){color:var(--muted);text-decoration:none}
+.nav-links a:not(.btn):hover{color:var(--ink)}
 .nav .btn{min-height:44px;padding:9px 20px;font-size:13px}
 /* Hero */
 .hero{display:flex;gap:56px;padding:72px 0 56px;align-items:center}
@@ -56,7 +56,7 @@ h1{font-family:var(--serif);font-size:clamp(36px,5vw,58px);line-height:1.08;font
 .hero-cta{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
 .hero-photo{flex:1;position:relative;max-width:420px}
 .hero-photo::after{content:"";position:absolute;inset:14px -14px -14px 14px;border:1px solid var(--accent-light);border-radius:2px;pointer-events:none}
-.hero-photo img{position:relative;z-index:1;width:100%;aspect-ratio:4/4.6;object-fit:cover;border-radius:2px;background:var(--line)}
+.hero-photo img{position:relative;z-index:1;width:100%;height:auto;aspect-ratio:4/4.6;object-fit:cover;border-radius:2px;background:var(--line)}
 /* Stats */
 .stats{display:flex;gap:48px;padding:22px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);font-size:13px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;flex-wrap:wrap}
 .stats b{color:var(--ink)}
@@ -75,7 +75,7 @@ h2{font-family:var(--serif);font-size:34px;font-weight:500;margin:0}
 h3{font-family:var(--serif);font-size:24px;font-weight:400;margin:0 0 6px}
 .project-body p{font-size:15px;line-height:1.6;color:var(--muted);max-width:480px;margin:0}
 .project-media{width:300px;flex:none;border-radius:4px;border:1px solid var(--line);overflow:hidden}
-.project-media img{width:100%}
+.project-media img{width:100%;height:auto}
 .proof-strip{margin-top:28px;font-size:13px;color:var(--muted);letter-spacing:.04em}
 .proof-strip a{color:var(--accent)}
 .more-projects{margin-top:22px;border-top:1px solid var(--line);padding-top:18px}
@@ -99,7 +99,7 @@ h3{font-family:var(--serif);font-size:24px;font-weight:400;margin:0 0 6px}
 .testi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px}
 .testi{background:var(--card);border-radius:4px;padding:26px;font-size:14.5px;line-height:1.65;color:var(--muted)}
 .testi .who{margin-top:14px;font-size:13px;color:var(--muted);display:flex;align-items:center;gap:10px}
-.testi .who img{width:44px;height:44px;border-radius:50%;flex:none}
+.testi .who img{width:44px;height:44px;border-radius:50%;object-fit:cover;flex:none}
 .testi .who a{color:var(--accent)}
 /* Stories */
 .stories-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px}
@@ -315,7 +315,7 @@ h3{font-family:var(--serif);font-size:24px;font-weight:400;margin:0 0 6px}
     <div class="footer-links">
       <a href="https://github.com/kaldown" target="_blank" rel="noopener">GitHub</a>
       <a href="https://www.linkedin.com/in/bogdanosinnyi/" target="_blank" rel="noopener">LinkedIn</a>
-      <a href="mailto:hello@bogdanosinnyi.com">hello@bogdanosinnyi.com</a>
+      <a href="mailto:bogdanosinnyi@gmail.com">bogdanosinnyi@gmail.com</a>
     </div>
     <div class="copyright">© 2026 Bogdan Osinnyi · bogdanosinnyi.com</div>
   </div>
