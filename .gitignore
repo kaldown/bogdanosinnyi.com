@@ -8,6 +8,7 @@ CLAUDE.local.md
 *.zip
 *.log
 .env*
+tmp/
 
 # OS junk / editors
 .DS_Store
