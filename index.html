@@ -23,12 +23,14 @@
   --serif:"Newsreader",Georgia,serif; --sans:"Archivo",system-ui,sans-serif; --mono:"IBM Plex Mono",monospace;
 }
 *{box-sizing:border-box}
-html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: no-preference){
+  html{scroll-behavior:smooth}
+}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
 a{color:var(--accent);text-decoration:underline;text-underline-offset:3px}
 a:hover{color:var(--ink)}
 img{max-width:100%;display:block}
-section{scroll-margin-top:88px}
+section, footer, header{scroll-margin-top:88px}
 .wrap{max-width:1180px;margin:0 auto;padding:0 56px}
 .btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:14px 28px;border-radius:999px;font-size:15px;font-weight:500;text-decoration:none;transition:transform .15s ease,opacity .15s ease}
 .btn:hover{transform:translateY(-1px);opacity:.9}
@@ -44,7 +46,7 @@ section{scroll-margin-top:88px}
 .nav-links{display:flex;gap:28px;align-items:center;font-size:14px}
 .nav-links a{color:var(--muted);text-decoration:none}
 .nav-links a:hover{color:var(--ink)}
-.nav .btn{min-height:40px;padding:9px 20px;font-size:13px}
+.nav .btn{min-height:44px;padding:9px 20px;font-size:13px}
 /* Hero */
 .hero{display:flex;gap:56px;padding:72px 0 56px;align-items:center}
 .hero-text{flex:1.4}
@@ -74,7 +76,6 @@ h3{font-family:var(--serif);font-size:24px;font-weight:400;margin:0 0 6px}
 .project-body p{font-size:15px;line-height:1.6;color:var(--muted);max-width:480px;margin:0}
 .project-media{width:300px;flex:none;border-radius:4px;border:1px solid var(--line);overflow:hidden}
 .project-media img{width:100%}
-.placeholder{height:120px;background:repeating-linear-gradient(45deg,#F1ECDF,#F1ECDF 10px,var(--bg) 10px,var(--bg) 20px);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;color:var(--faint)}
 .proof-strip{margin-top:28px;font-size:13px;color:var(--muted);letter-spacing:.04em}
 .proof-strip a{color:var(--accent)}
 .more-projects{margin-top:22px;border-top:1px solid var(--line);padding-top:18px}
@@ -82,7 +83,7 @@ h3{font-family:var(--serif);font-size:24px;font-weight:400;margin:0 0 6px}
 .more-projects summary:hover{color:var(--ink)}
 .mini-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-top:18px}
 .mini-card{background:var(--card);border-radius:4px;padding:16px}
-.mini-card .tag{font-family:var(--mono);font-size:10.5px;color:var(--faint);letter-spacing:.05em;text-transform:uppercase}
+.mini-card .tag{font-family:var(--mono);font-size:10.5px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase}
 .mini-card h4{font-family:var(--serif);font-size:16.5px;font-weight:400;margin:6px 0 4px}
 .mini-card p{font-size:13px;line-height:1.55;color:var(--muted);margin:0}
 /* Two-column prose rows */
@@ -97,7 +98,7 @@ h3{font-family:var(--serif);font-size:24px;font-weight:400;margin:0 0 6px}
 /* Testimonials */
 .testi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px}
 .testi{background:var(--card);border-radius:4px;padding:26px;font-size:14.5px;line-height:1.65;color:var(--muted)}
-.testi .who{margin-top:14px;font-size:13px;color:var(--faint);display:flex;align-items:center;gap:10px}
+.testi .who{margin-top:14px;font-size:13px;color:var(--muted);display:flex;align-items:center;gap:10px}
 .testi .who img{width:44px;height:44px;border-radius:50%;flex:none}
 .testi .who a{color:var(--accent)}
 /* Stories */
@@ -137,8 +138,8 @@ h3{font-family:var(--serif);font-size:24px;font-weight:400;margin:0 0 6px}
     <div class="nav-links">
       <a href="#work">Work</a>
       <a href="#way">How I work</a>
-      <a href="#stories">Stories</a>
       <a href="#about">About</a>
+      <a href="#stories">Stories</a>
       <a href="#contact">Contact</a>
       <a class="btn btn-dark" href="https://calendly.com/bogdanosinnyi" target="_blank" rel="noopener">Book a call</a>
     </div>
@@ -157,7 +158,7 @@ h3{font-family:var(--serif);font-size:24px;font-weight:400;margin:0 0 6px}
       </div>
     </div>
     <div class="hero-photo">
-      <img src="/assets/portrait.jpg" alt="Bogdan Osinnyi" width="420" height="483">
+      <img src="/assets/portrait.jpg" alt="Bogdan Osinnyi" width="420" height="483" fetchpriority="high">
     </div>
   </div>
   <div class="stats">
@@ -171,7 +172,7 @@ h3{font-family:var(--serif);font-size:24px;font-weight:400;margin:0 0 6px}
 <main>
 <section class="wrap section-pad" id="work">
   <div class="h2row"><h2>Problems I automated away</h2><a href="https://github.com/kaldown" target="_blank" rel="noopener" style="font-size:13px">more on GitHub →</a></div>
-  <p class="section-intro">Most of my work starts the same way: a human problem, automated for good. Some of it ships to production for clients; some of it ships to 32,000 strangers for free.</p>
+  <p class="section-intro">Most of my work starts the same way: a human problem, automated for good. Some of it ships to production for clients; some of it ships free to strangers — 32,000+ downloads and counting.</p>
 
   <!-- To add a project: copy any <article class="project"> block below, edit the
        text, and place it where you want it — numbering is automatic (CSS counter).
@@ -200,7 +201,7 @@ h3{font-family:var(--serif);font-size:24px;font-weight:400;margin:0 0 6px}
       <p>A fast terminal UI in Rust for browsing, installing and updating Claude Code plugins. My most-starred <a href="https://github.com/kaldown/ccpm" target="_blank" rel="noopener">open-source project</a> — written in a language I'd never claim on a CV, which is rather the point.</p>
     </div>
     <a class="project-media" href="https://github.com/kaldown/ccpm" target="_blank" rel="noopener" aria-label="ccpm on GitHub">
-      <img src="https://raw.githubusercontent.com/kaldown/ccpm/main/docs/images/ccpm_thumbnail.png" alt="ccpm terminal UI" loading="lazy" style="background:#111">
+      <img src="/assets/ccpm-thumb.jpg" alt="ccpm terminal UI" width="600" height="415" loading="lazy" style="background:#111">
     </a>
   </article>
 
@@ -211,7 +212,7 @@ h3{font-family:var(--serif);font-size:24px;font-weight:400;margin:0 0 6px}
       <p>A fully autonomous agent that books my daily discounted pizza: it drives a heavy JavaScript site with QA tooling, calls the restaurant through a temporary phone number, and leaves my address. Autonomous browsing, telephony and a real-world result — built years before "agents" were a product category. <a href="https://youtu.be/8_-wekj8vBs" target="_blank" rel="noopener">Watch it run ↗</a></p>
     </div>
     <a class="project-media" href="https://youtu.be/8_-wekj8vBs" target="_blank" rel="noopener" aria-label="lazycoupon demo video on YouTube">
-      <img src="https://img.youtube.com/vi/8_-wekj8vBs/hqdefault.jpg" alt="lazycoupon demo video" loading="lazy">
+      <img src="/assets/lazycoupon-thumb.jpg" alt="lazycoupon demo video" width="600" height="450" loading="lazy">
     </a>
   </article>
 
@@ -221,7 +222,7 @@ h3{font-family:var(--serif);font-size:24px;font-weight:400;margin:0 0 6px}
       <h3><a href="https://www.curseforge.com/wow/addons/lazyprof" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">In-game economics — 32,000+ downloads</a></h3>
       <p>World of Warcraft developers told me a global database of in-game items didn't exist and couldn't be built. So I built the parser, shipped the database as <a href="https://github.com/kaldown/CraftLib" target="_blank" rel="noopener">CraftLib</a> — a public library the community builds on — and proved it with <a href="https://github.com/kaldown/LazyProf" target="_blank" rel="noopener">LazyProf</a>, which plans the cheapest path to level any profession. Together with a peer-to-peer guild auction house (lots, queues, voting), that's 32,000+ downloads of in-game finance tools — all in Lua, another language I never formally learned.</p>
     </div>
-    <!-- media: add assets/lazyprof.png when Bogdan provides it (see launch checklist) -->
+    <!-- optional: add a screenshot here as assets/lazyprof.png, same pattern as the media blocks above -->
   </article>
 
   <article class="project">
@@ -267,13 +268,14 @@ h3{font-family:var(--serif);font-size:24px;font-weight:400;margin:0 0 6px}
   <!-- To add a testimonial: copy a .testi div. Quotes must be real and verifiable —
        link the name to the LinkedIn recommendation. The grid stretches automatically. -->
   <div class="testi-grid">
-    <div class="testi">"I can strongly recommend Bogdan as a really nice and delicate person, who can communicate effectively both as a team member and individually. He performs stable and open-minded personality and willingness to cooperate. Bogdan proved to be a reliable and highly qualified developer, who works successfully in in-house and remote projects. So, the team where Bogdan is welcomed would definitely succeed."<div class="who"><img src="/assets/testimonial-vera.jpg" alt="" width="44" height="44" loading="lazy"><span>— <a href="https://www.linkedin.com/in/bogdanosinnyi/details/recommendations/" target="_blank" rel="noopener">Vera Suchkova</a>, International Tech Talent Partner</span></div></div>
-    <div class="testi">"Bogdan and me worked together at Phenom.team. He is passionate developer with profound skills in web application design. He has great mentorship skills as he was the most helpful for me in my early days as a web developer. Also I like his deep knowledge and interest for UNIX operational systems."<div class="who"><img src="/assets/testimonial-daniil.jpg" alt="" width="44" height="44" loading="lazy"><span>— <a href="https://www.linkedin.com/in/bogdanosinnyi/details/recommendations/" target="_blank" rel="noopener">Daniil Baskal</a>, Senior Software Engineer</span></div></div>
-    <div class="testi">"Bogdan was my colleague in Phenom Team. During our work he proved to be an amazing specialist who is able to solve difficult tasks in short time. He is stress resistant, can find a common language with people and is opened for new technologies."<div class="who"><img src="/assets/testimonial-peter.jpg" alt="" width="44" height="44" loading="lazy"><span>— <a href="https://www.linkedin.com/in/bogdanosinnyi/details/recommendations/" target="_blank" rel="noopener">Peter Potapov</a>, CTO, United</span></div></div>
+    <div class="testi">"I can strongly recommend Bogdan as a really nice and delicate person, who can communicate effectively both as a team member and individually. He performs stable and open-minded personality and willingness to cooperate. Bogdan proved to be a reliable and highly qualified developer, who works successfully in in-house and remote projects. So, the team where Bogdan is welcomed would definitely succeed."<div class="who"><img src="/assets/testimonial-vera.jpg" alt="" width="44" height="44" loading="lazy"><span>— <a href="https://www.linkedin.com/in/bogdanosinnyi/details/recommendations/" target="_blank" rel="noopener" aria-label="Vera Suchkova's recommendation on LinkedIn">Vera Suchkova</a>, International Tech Talent Partner</span></div></div>
+    <div class="testi">"Bogdan and me worked together at Phenom.team. He is passionate developer with profound skills in web application design. He has great mentorship skills as he was the most helpful for me in my early days as a web developer. Also I like his deep knowledge and interest for UNIX operational systems."<div class="who"><img src="/assets/testimonial-daniil.jpg" alt="" width="44" height="44" loading="lazy"><span>— <a href="https://www.linkedin.com/in/bogdanosinnyi/details/recommendations/" target="_blank" rel="noopener" aria-label="Daniil Baskal's recommendation on LinkedIn">Daniil Baskal</a>, Senior Software Engineer</span></div></div>
+    <div class="testi">"Bogdan was my colleague in Phenom Team. During our work he proved to be an amazing specialist who is able to solve difficult tasks in short time. He is stress resistant, can find a common language with people and is opened for new technologies."<div class="who"><img src="/assets/testimonial-peter.jpg" alt="" width="44" height="44" loading="lazy"><span>— <a href="https://www.linkedin.com/in/bogdanosinnyi/details/recommendations/" target="_blank" rel="noopener" aria-label="Peter Potapov's recommendation on LinkedIn">Peter Potapov</a>, CTO, United</span></div></div>
   </div>
 </section>
 
 <section class="wrap" id="about">
+  <h2>About</h2>
   <div class="prose-row">
     <div class="prose-label">Twenty-five people,<br>one goal</div>
     <p>For many months I led 25-person raids in World of Warcraft — recruiting and vetting people, preparing strategy, and coordinating the fight in real time. Everyone was a volunteer, so authority had to be earned again every week. It's the most honest leadership training I've had, and it shows in how I run projects.</p>
