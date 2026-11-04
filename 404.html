@@ -6,11 +6,61 @@
 <meta name="robots" content="noindex">
 <link rel="stylesheet" href="/assets/fonts/fonts.css">
 <style>
+:root{--bg:#FAF7F0;--ink:#1C1A15;--muted:#5C5748;--line:#E4DECF;--accent:#8A6D1F;
+--serif:"Newsreader",Georgia,serif;--sans:"Archivo",system-ui,sans-serif}
+*{box-sizing:border-box}
 body{margin:0;background:#FAF7F0;color:#1C1A15;font-family:"Archivo",system-ui,sans-serif;
-display:flex;min-height:100vh;align-items:center;justify-content:center;text-align:center}
+display:flex;flex-direction:column;min-height:100vh}
+.nf{flex:1;display:flex;align-items:center;justify-content:center;text-align:center;padding:0 24px}
 h1{font-family:"Newsreader",Georgia,serif;font-weight:500;font-size:44px;margin:0 0 10px}
 p{color:#5C5748}a{color:#8A6D1F}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:14px 28px;border-radius:999px;font-size:15px;font-weight:500;text-decoration:none;transition:transform .15s ease,opacity .15s ease}
+.btn:hover{transform:translateY(-1px);opacity:.9}
+.btn-dark{background:var(--ink);color:var(--bg)}
+.btn-dark:hover{color:var(--bg)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+/* Nav (same as index.html) */
+.nav{position:sticky;top:0;z-index:10;background:rgba(250,247,240,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.nav-in{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:18px 56px;max-width:1180px;margin:0 auto}
+.nav-name{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);text-decoration:none;white-space:nowrap}
+.nav-links{display:flex;gap:28px;align-items:center;font-size:14px}
+.nav-links a:not(.btn){color:var(--muted);text-decoration:none}
+.nav-links a:not(.btn):hover{color:var(--ink)}
+.nav-sep{width:1px;height:20px;background:var(--line);flex:none}
+.nav-links a.nav-page{color:var(--ink);font-weight:500;white-space:nowrap}
+.nav-links a.nav-page:hover{color:var(--accent)}
+.nav .btn{min-height:44px;padding:9px 20px;font-size:13px;white-space:nowrap}
+@media (max-width:900px){
+  .nav-in{padding:14px 24px}
+  .nav-links{gap:18px}
+  .nav-links a:not(.btn):not(.nav-page),.nav-sep{display:none}
+  .nav .btn{padding:9px 16px}
+}
+/* Small phones: name, Cases and the button share one row */
+@media (max-width:420px){
+  .nav-in{gap:10px}
+  .nav-links{gap:12px}
+  .nav-name{font-size:18px}
+  .nav .btn{padding:9px 14px}
+}
 </style>
 </head>
-<body><div><h1>Nothing here.</h1><p>This page got automated away. <a href="/">Back to the start →</a></p></div></body>
+<body>
+<nav class="nav">
+  <div class="nav-in">
+    <a class="nav-name" href="/">Bogdan Osinnyi</a>
+    <div class="nav-links">
+      <a href="/#work">Work</a>
+      <a href="/#way">How I work</a>
+      <a href="/#about">About</a>
+      <a href="/#stories">Stories</a>
+      <a href="/#contact">Contact</a>
+      <span class="nav-sep" aria-hidden="true"></span>
+      <a class="nav-page" href="/cases/">Cases <span aria-hidden="true">→</span></a>
+      <a class="btn btn-dark" href="https://calendly.com/bogdanosinnyi" target="_blank" rel="noopener">Book a call</a>
+    </div>
+  </div>
+</nav>
+<div class="nf"><div><h1>Nothing here.</h1><p>This page got automated away. <a href="/">Back to the start →</a></p></div></div>
+</body>
 </html>

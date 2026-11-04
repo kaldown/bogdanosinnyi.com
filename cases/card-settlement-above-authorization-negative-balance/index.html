@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Card settlement above authorization: negative balances</title>
+<meta name="description" content="Restaurant tips and fuel checks settled above the authorization and left card balances below zero, unreported. How I measured it and fixed it at the approval.">
+<link rel="canonical" href="https://bogdanosinnyi.com/cases/card-settlement-above-authorization-negative-balance/">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://bogdanosinnyi.com/cases/card-settlement-above-authorization-negative-balance/">
+<meta property="og:title" content="Card settlement above authorization: negative balances">
+<meta property="og:description" content="Restaurant tips and fuel checks settled above the authorization and left card balances below zero, unreported. How I measured it and fixed it at the approval.">
+<meta property="og:image" content="https://bogdanosinnyi.com/cases/card-settlement-above-authorization-negative-balance/share.jpg">
+<meta property="og:site_name" content="Bogdan Osinnyi">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%231C1A15'/%3E%3Ctext x='32' y='44' font-family='Georgia,serif' font-style='italic' font-size='36' fill='%23FAF7F0' text-anchor='middle'%3EB%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="/assets/fonts/fonts.css">
+<link rel="stylesheet" href="/assets/cases.css">
+<script src="/assets/cases.js" defer></script>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"TechArticle","@id":"https://bogdanosinnyi.com/cases/card-settlement-above-authorization-negative-balance/#article","headline":"Reserve what the purchase will cost, not what the merchant asked for","description":"Restaurant tips and fuel checks settled above the authorization and left card balances below zero, unreported. How I measured it and fixed it at the approval.","image":"https://bogdanosinnyi.com/cases/card-settlement-above-authorization-negative-balance/share.jpg","author":{"@id":"https://bogdanosinnyi.com/#person"},"keywords":["Payments","Card issuing","Money correctness","Concurrency","Zero-downtime migrations","Testing","Python","PostgreSQL"],"mainEntityOfPage":"https://bogdanosinnyi.com/cases/card-settlement-above-authorization-negative-balance/"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Cases","item":"https://bogdanosinnyi.com/cases/"},{"@type":"ListItem","position":2,"name":"Payments","item":"https://bogdanosinnyi.com/cases/tags/payments/"},{"@type":"ListItem","position":3,"name":"Reserve what the purchase will cost, not what the merchant asked for","item":"https://bogdanosinnyi.com/cases/card-settlement-above-authorization-negative-balance/"}]}]}</script>
+</head>
+<body class="case-page">
+<nav class="nav">
+  <div class="nav-in">
+    <a class="nav-name" href="/">Bogdan Osinnyi</a>
+    <div class="nav-links">
+      <a href="/#work">Work</a>
+      <a href="/#way">How I work</a>
+      <a href="/#about">About</a>
+      <a href="/#stories">Stories</a>
+      <a href="/#contact">Contact</a>
+      <span class="nav-sep" aria-hidden="true"></span>
+      <a class="nav-page" href="/cases/" aria-current="true">Cases <span aria-hidden="true">→</span></a>
+      <a class="btn btn-dark" href="https://calendly.com/bogdanosinnyi" target="_blank" rel="noopener">Book a call</a>
+    </div>
+  </div>
+</nav>
+<main class="case-grid">
+<aside class="toc-col">
+<nav class="toc" aria-labelledby="toc-label"><p class="grp" id="toc-label">On this page</p><ol><li><a href="#the-situation">The situation</a></li><li><a href="#how-it-was-found">How it was found</a></li><li><a href="#what-a-settlement-above-the-authorization-looks-like">What a settlement above the authorization looks like</a></li><li><a href="#constraints">Constraints</a></li><li><a href="#options-and-decisions">Options and decisions</a></li><li><a href="#the-approach">The approach</a></li><li><a href="#hard-parts">Hard parts</a></li><li><a href="#before-and-after">Before and after</a></li><li><a href="#result">Result</a></li><li><a href="#lessons">Lessons</a></li></ol></nav>
+<div class="side-tags"><p class="grp">Tags</p><ul class="chips"><li><a class="chip" href="/cases/tags/payments/">Payments</a></li><li><a class="chip" href="/cases/tags/card-issuing/">Card issuing</a></li><li><a class="chip" href="/cases/tags/money-correctness/">Money correctness</a></li><li><a class="chip" href="/cases/tags/concurrency/">Concurrency</a></li><li><a class="chip" href="/cases/tags/zero-downtime-migrations/">Zero-downtime migrations</a></li><li><a class="chip" href="/cases/tags/testing/">Testing</a></li><li><a class="chip" href="/cases/tags/python/">Python</a></li><li><a class="chip" href="/cases/tags/postgresql/">PostgreSQL</a></li></ul></div>
+</aside>
+<article class="case">
+<p class="crumb"><a href="/cases/">Cases</a> / <a href="/cases/tags/payments/">Payments</a></p>
+<h1>Reserve what the purchase will cost, not what the merchant asked for</h1>
+<details class="jump"><summary>Jump to section</summary><ol><li><a href="#the-situation">The situation</a></li><li><a href="#how-it-was-found">How it was found</a></li><li><a href="#what-a-settlement-above-the-authorization-looks-like">What a settlement above the authorization looks like</a></li><li><a href="#constraints">Constraints</a></li><li><a href="#options-and-decisions">Options and decisions</a></li><li><a href="#the-approach">The approach</a></li><li><a href="#hard-parts">Hard parts</a></li><li><a href="#before-and-after">Before and after</a></li><li><a href="#result">Result</a></li><li><a href="#lessons">Lessons</a></li></ol></details>
+<p class="lead">A card payment has two moments. First the card processor asks the issuer, in real time, whether to approve a purchase. The issuer reserves that amount on the cardholder's account. Later the merchant settles the purchase, sometimes for a different amount. The processor then sends a settlement (clearing) message that the issuer has to book as it is. That message cannot be declined. When it settles above the reserved amount, the balance ends below zero. The difference is the issuer's loss. In the card issuing platform I worked on, nothing reported that loss. I found the gap while writing tests. I measured it on real traffic replayed through the system. The fix has two steps. The real-time decision now reserves what the purchase will probably cost, decided once and stored on the purchase. Every transaction message that still leaves a balance below zero is logged, with the balance before and after, once it is booked.</p>
+<dl class="facts"><dt>Problem</dt><dd>Purchases that settled above their authorization took card balances below zero, and nothing reported it.</dd><dt>Result</dt><dd>70 to 89 % of over-settlements at tip merchants would fit inside the reserve, by my calculation on replayed real traffic from before the change.</dd><dt>Role</dt><dd>I solely own every technical decision: design, code, tests and verification</dd><dt>Stack</dt><dd>Python · PostgreSQL</dd></dl>
+<div class="body">
+<div class="callout callout--problem">
+<p><strong class="label">The problem.</strong> A settlement can arrive above the amount the real-time decision reserved, and the issuer cannot decline it. The balance ends below zero. The difference is the issuer's loss, and nothing reported it.</p>
+</div>
+<div class="callout callout--fix">
+<p><strong class="label">The fix.</strong> The real-time decision reserves what the purchase will probably cost: the asked amount plus a buffer, decided once and stored on the purchase. Every message that still leaves a balance below zero is logged, with the balance before and after, once it is booked.</p>
+</div>
+<h2 id="the-situation"><a class="h-anchor" href="#the-situation" aria-label="Link to this section">#</a>The situation</h2>
+<p>My rule for a card balance is simple. A wrong decline is tolerable: the cardholder tries again or pays another way. An overspend is not: <strong class="mark">every cent below zero is money the company has paid out</strong> and may never get back. <strong class="mark">The real-time decision is the only moment where the issuer can say no.</strong> Everything after it is bookkeeping.</p>
+<p>Two merchant shapes break this rule routinely. At a restaurant the terminal authorizes the bill and settles the bill plus the tip. At an automated fuel dispenser the pump sends a 1.00 &quot;status check&quot; to confirm that the card works. The issuer approves 1.00, and the pump then dispenses fuel up to a limit set by the card network. The real amount reaches the issuer only afterwards, in an authorization advice. Under the card network's published rule, the issuer carries the liability for the dispensed amount up to a published limit far above the 1.00. The issuer can dispute only the part above that limit. A card with a small balance is exactly what that rule exposes.</p>
+<h2 id="how-it-was-found"><a class="h-anchor" href="#how-it-was-found" aria-label="Link to this section">#</a>How it was found</h2>
+<p>Nobody had seen the problem. There was no alert, no report and no manual process for a purchase that settled above its reserve. That is my account of the time before the work.</p>
+<p>I noticed the gap while building test coverage for the money paths. My rule for those tests is that every message from the card processor is a real one. It is captured from real traffic, never written by hand. A captured restaurant lifecycle settled above its authorization. The test that replayed it showed the account below zero with nothing reported. I wrote failing tests on captured messages for each shape of the gap before I designed anything.</p>
+<p>Then I measured, on replayed real traffic over twelve weeks. About 2.6 % of all settled purchases settled above their authorization. At tip merchants the share was far higher. It was about 8.6 % at restaurants and 3.1 % at fast food. At taxis it was 22.1 %, at bars 25.1 %, and at barbers and beauty salons 20.0 %. Measured on the same traffic, even a 30 % reserve leaves a tail. A reserve lowers how often a balance goes below zero; it cannot remove it. So a log line for every remaining case is needed whatever the reserve is.</p>
+<p>The fuel finding was different. The application had no fuel rule at all. In the replayed traffic, more than half of the fuel-dispenser attempts were exactly 1.00 status checks.</p>
+<p>An older system confirmed the shape with real money. Its report for the sponsor bank lists every posting that took an account below zero. When I asked the business for evidence of the loss, that report was the answer. Over ten months it listed many card postings that took an account below zero. Restaurants came first and ATM withdrawals second, then fast food, taxis and service stations. Half of the crossings were under 3.00 and nine of ten were under 25.00. Nothing in that report came from the platform I worked on. It showed that the shape I had measured on replayed traffic costs real money with live cardholders.</p>
+<h2 id="what-a-settlement-above-the-authorization-looks-like"><a class="h-anchor" href="#what-a-settlement-above-the-authorization-looks-like" aria-label="Link to this section">#</a>What a settlement above the authorization looks like</h2>
+<p>Two examples, with round amounts, shaped like the captured messages.</p>
+<p>A restaurant authorizes 10.00 on an account that holds 10.00. The decision approves and reserves 10.00. The settlement arrives for 13.00. The system books 13.00, because it has no choice, and the balance reads −3.00. Nothing else happens.</p>
+<p>A fuel dispenser sends a 1.00 status check on an account that holds 1.00. The decision approves and reserves 1.00. An authorization advice arrives for 60.00. The balance reads −59.00. Nothing else happens.</p>
+<figure><div class="fig"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" role="img" aria-labelledby="fig-1-i1 fig-1-i2">
+  <title id="fig-1-i1">Before and after: how a card purchase is reserved and booked</title>
+  <desc id="fig-1-i2">Before, four steps: the real-time decision approves the asked amount of 10.00, the account reserves 10.00, the settlement arrives for 13.00 and cannot be declined, the purchase is booked as it is and the balance ends at minus 3.00, below zero, with nothing reported. After, the same four steps: the decision reserves the asked amount plus a buffer, the buffer is decided once and stored on the purchase, the advice or settlement releases it, and the balance stays at or above zero; a message that still leaves it below zero is logged after the commit.</desc>
+  <style>
+    .fig-1-c1{fill:#FAF7F0}
+    .fig-1-c2{fill:none;stroke:#E4DECF;stroke-width:1}
+    .fig-1-c3{fill:#FAF7F0;stroke:#8A8371;stroke-width:1}
+    .fig-1-c4{fill:#F3EEE1;stroke:#8A6D1F;stroke-width:2}
+    .fig-1-c5{fill:#FAF7F0;stroke:#1C1A15;stroke-width:3}
+    .fig-1-c6{fill:#F3EEE1;stroke:#8A6D1F;stroke-width:3}
+    .fig-1-c7{font:700 15px Archivo,system-ui,sans-serif;fill:#1C1A15;letter-spacing:.06em}
+    .fig-1-c8{font:600 13px Archivo,system-ui,sans-serif;fill:#1C1A15}
+    .fig-1-c9{font:400 12px Archivo,system-ui,sans-serif;fill:#5C5748}
+    .fig-1-c10{font:400 12px Archivo,system-ui,sans-serif;fill:#8A8371}
+    .fig-1-c11{font:600 12.5px Archivo,system-ui,sans-serif;fill:#8A6D1F}
+    .fig-1-c12{font:800 15px Archivo,system-ui,sans-serif;fill:#1C1A15;letter-spacing:.03em}
+    .fig-1-c13{font:800 15px Archivo,system-ui,sans-serif;fill:#8A6D1F;letter-spacing:.03em}
+    .fig-1-c14{stroke:#8A8371;stroke-width:1.5;fill:none;marker-end:url(#fig-1-i3)}
+    .fig-1-c15{stroke:#8A6D1F;stroke-width:2;fill:none;marker-end:url(#fig-1-i4)}
+  </style>
+  <defs>
+    <marker id="fig-1-i3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#8A8371" />
+    </marker>
+    <marker id="fig-1-i4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#8A6D1F" />
+    </marker>
+  </defs>
+  <rect class="fig-1-c1" x="0" y="0" width="960" height="560" />
+
+  <rect class="fig-1-c2" x="20" y="20" width="920" height="230" rx="8" />
+  <text class="fig-1-c7" x="36" y="48">BEFORE</text>
+
+  <rect class="fig-1-c3" x="36" y="76" width="204" height="84" rx="6" />
+  <text class="fig-1-c8" x="48" y="100">Real-time decision</text>
+  <text class="fig-1-c9" x="48" y="120">approves the asked amount</text>
+  <text class="fig-1-c9" x="48" y="138">10.00 bill: reserves 10.00</text>
+  <path class="fig-1-c14" d="M240,118 L264,118" />
+
+  <rect class="fig-1-c3" x="266" y="76" width="204" height="84" rx="6" />
+  <text class="fig-1-c8" x="278" y="100">Hold on the account</text>
+  <text class="fig-1-c9" x="278" y="120">balance 10.00, held 10.00</text>
+  <text class="fig-1-c9" x="278" y="138">0.00 free</text>
+  <path class="fig-1-c14" d="M470,118 L494,118" />
+
+  <rect class="fig-1-c3" x="496" y="76" width="204" height="84" rx="6" />
+  <text class="fig-1-c8" x="508" y="100">Settlement message</text>
+  <text class="fig-1-c9" x="508" y="120">cannot be declined</text>
+  <text class="fig-1-c9" x="508" y="138">settles 13.00: bill plus tip</text>
+  <path class="fig-1-c14" d="M700,118 L724,118" />
+
+  <rect class="fig-1-c5" x="726" y="76" width="204" height="84" rx="6" />
+  <text class="fig-1-c8" x="738" y="100">Booked as it is</text>
+  <text class="fig-1-c12" x="738" y="124">−3.00  BELOW ZERO</text>
+  <text class="fig-1-c8" x="738" y="146">nothing reported</text>
+
+  <text class="fig-1-c9" x="36" y="196">Fuel: a 1.00 status check is approved as asked, a 60.00 advice follows, the balance ends at −59.00, below zero, nothing reported.</text>
+  <text class="fig-1-c10" x="36" y="218">The problem: the balance can end below zero and nothing says so. The difference is the issuer's loss.</text>
+
+  <rect class="fig-1-c2" x="20" y="270" width="920" height="270" rx="8" />
+  <text class="fig-1-c7" x="36" y="298">AFTER</text>
+
+  <rect class="fig-1-c4" x="36" y="326" width="204" height="98" rx="6" />
+  <text class="fig-1-c8" x="48" y="350">Real-time decision</text>
+  <text class="fig-1-c11" x="48" y="370">reserves asked + buffer</text>
+  <text class="fig-1-c9" x="48" y="388">tip merchant: +25 %</text>
+  <text class="fig-1-c9" x="48" y="406">fuel: 1.00 + fixed buffer</text>
+  <path class="fig-1-c15" d="M240,375 L264,375" />
+
+  <rect class="fig-1-c4" x="266" y="326" width="204" height="98" rx="6" />
+  <text class="fig-1-c8" x="278" y="350">Buffer stored once</text>
+  <text class="fig-1-c11" x="278" y="370">decided when first seen</text>
+  <text class="fig-1-c9" x="278" y="388">written on the purchase,</text>
+  <text class="fig-1-c9" x="278" y="406">never recomputed later</text>
+  <path class="fig-1-c15" d="M470,375 L494,375" />
+
+  <rect class="fig-1-c3" x="496" y="326" width="204" height="98" rx="6" />
+  <text class="fig-1-c8" x="508" y="350">Advice or settlement</text>
+  <text class="fig-1-c9" x="508" y="370">advice: fixed buffer released</text>
+  <text class="fig-1-c9" x="508" y="388">settlement: all released</text>
+  <path class="fig-1-c14" d="M700,375 L724,375" />
+
+  <rect class="fig-1-c6" x="726" y="326" width="204" height="98" rx="6" />
+  <text class="fig-1-c8" x="738" y="350">Checked each message</text>
+  <text class="fig-1-c13" x="738" y="374">AT OR ABOVE ZERO</text>
+  <text class="fig-1-c9" x="738" y="392">still below? logged after the</text>
+  <text class="fig-1-c9" x="738" y="410">commit, never under a lock</text>
+
+  <text class="fig-1-c9" x="36" y="460">Example: the 10.00 bill reserves 12.50; the 13.00 settlement leaves 0.50 uncovered, and that one case is logged.</text>
+  <text class="fig-1-c9" x="36" y="482">Fuel: a 1.00 status check reserves 1.00 plus the fixed buffer; the 60.00 advice releases the buffer and holds 60.00; the settlement books 60.00.</text>
+  <text class="fig-1-c10" x="36" y="518">The fix: reserve what the purchase will probably cost, decided once; log every message that still leaves a balance below zero.</text>
+</svg></div><figcaption>Before: the settlement books whatever settled and the balance ends below zero without a signal. After: the approval reserves the likely cost, and the buffer is decided once and stored on the purchase. The advice or the settlement releases it, and the balance stays at or above zero. Any message that still leaves a balance below zero is logged after the commit.</figcaption></figure><figure><div class="fig"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 440" role="img" aria-labelledby="fig-2-i1 fig-2-i2">
+  <title id="fig-2-i1">Settlements above the authorization by merchant category, and the part a 25 % reserve covers</title>
+  <desc id="fig-2-i2">Horizontal bars by merchant category. Each bar is the share of settled purchases that settled above their authorization; the accent part is what a 25 % reserve would cover by my calculation, the dark part is still above the reserve. All purchases 2.6 %, no split. Restaurants 8.6 % above, 88 % of them covered. Fast food 3.1 %, 78 % covered. Taxis 22.1 %, 70 % covered. Bars 25.1 %, 76 % covered. Barbers and beauty 20.0 %, 89 % covered. Measured on replayed real traffic over twelve weeks, before the change.</desc>
+  <style>
+    .fig-2-c1{fill:#FAF7F0}
+    .fig-2-c2{font:700 15px Archivo,system-ui,sans-serif;fill:#1C1A15}
+    .fig-2-c3{font:400 12px Archivo,system-ui,sans-serif;fill:#5C5748}
+    .fig-2-c4{font:400 12px Archivo,system-ui,sans-serif;fill:#8A8371}
+    .fig-2-c5{font:500 13px Archivo,system-ui,sans-serif;fill:#1C1A15}
+    .fig-2-c6{font:600 12.5px Archivo,system-ui,sans-serif;fill:#1C1A15;font-variant-numeric:tabular-nums}
+    .fig-2-c7{font:400 12.5px Archivo,system-ui,sans-serif;fill:#5C5748;font-variant-numeric:tabular-nums}
+    .fig-2-c8{font:400 11px Archivo,system-ui,sans-serif;fill:#8A8371;font-variant-numeric:tabular-nums}
+    .fig-2-c9{stroke:#E4DECF;stroke-width:1}
+    .fig-2-c10{stroke:#8A8371;stroke-width:1}
+    .fig-2-c11{fill:#8A6D1F}
+    .fig-2-c12{fill:#1C1A15}
+    .fig-2-c13{fill:#8A8371}
+  </style>
+  <rect class="fig-2-c1" x="0" y="0" width="960" height="440" />
+
+  <text class="fig-2-c2" x="24" y="34">Settled above the authorization, and the part the reserve covers</text>
+  <text class="fig-2-c3" x="24" y="56">Share of settled purchases that settled above their authorization, by merchant category.</text>
+  <text class="fig-2-c3" x="24" y="74">Accent: the part a 25 % reserve would cover, by my calculation. A larger accent share is better. Dark: still above the reserve, logged.</text>
+
+  <rect class="fig-2-c11" x="24" y="92" width="14" height="14" rx="3" />
+  <text class="fig-2-c3" x="44" y="104">covered by the 25 % reserve</text>
+  <rect class="fig-2-c12" x="236" y="92" width="14" height="14" rx="3" />
+  <text class="fig-2-c3" x="256" y="104">still above the reserve</text>
+  <rect class="fig-2-c13" x="416" y="92" width="14" height="14" rx="3" />
+  <text class="fig-2-c3" x="436" y="104">all categories, no reserve split</text>
+
+  <line class="fig-2-c9" x1="416" y1="120" x2="416" y2="372" />
+  <line class="fig-2-c9" x1="616" y1="120" x2="616" y2="372" />
+  <line class="fig-2-c9" x1="816" y1="120" x2="816" y2="372" />
+  <text class="fig-2-c8" x="216" y="388" text-anchor="middle">0 %</text>
+  <text class="fig-2-c8" x="416" y="388" text-anchor="middle">10 %</text>
+  <text class="fig-2-c8" x="616" y="388" text-anchor="middle">20 %</text>
+  <text class="fig-2-c8" x="816" y="388" text-anchor="middle">30 %</text>
+
+  <text class="fig-2-c5" x="204" y="145" text-anchor="end">All purchases</text>
+  <rect class="fig-2-c13" x="216" y="132" width="52" height="18" rx="3" />
+  <text class="fig-2-c6" x="278" y="145">2.6 %</text>
+  <text class="fig-2-c7" x="322" y="145">above the authorization</text>
+
+  <text class="fig-2-c5" x="204" y="185" text-anchor="end">Restaurants</text>
+  <rect class="fig-2-c11" x="216" y="172" width="152" height="18" rx="3" />
+  <rect class="fig-2-c12" x="370" y="172" width="18" height="18" rx="3" />
+  <text class="fig-2-c6" x="398" y="185">8.6 %</text>
+  <text class="fig-2-c7" x="442" y="185">above · 88 % covered</text>
+
+  <text class="fig-2-c5" x="204" y="225" text-anchor="end">Fast food</text>
+  <rect class="fig-2-c11" x="216" y="212" width="49" height="18" rx="3" />
+  <rect class="fig-2-c12" x="267" y="212" width="12" height="18" rx="3" />
+  <text class="fig-2-c6" x="289" y="225">3.1 %</text>
+  <text class="fig-2-c7" x="333" y="225">above · 78 % covered</text>
+
+  <text class="fig-2-c5" x="204" y="265" text-anchor="end">Taxis</text>
+  <rect class="fig-2-c11" x="216" y="252" width="308" height="18" rx="3" />
+  <rect class="fig-2-c12" x="526" y="252" width="132" height="18" rx="3" />
+  <text class="fig-2-c6" x="668" y="265">22.1 %</text>
+  <text class="fig-2-c7" x="720" y="265">above · 70 % covered</text>
+
+  <text class="fig-2-c5" x="204" y="305" text-anchor="end">Bars</text>
+  <rect class="fig-2-c11" x="216" y="292" width="383" height="18" rx="3" />
+  <rect class="fig-2-c12" x="601" y="292" width="117" height="18" rx="3" />
+  <text class="fig-2-c6" x="728" y="305">25.1 %</text>
+  <text class="fig-2-c7" x="780" y="305">above · 76 % covered</text>
+
+  <text class="fig-2-c5" x="204" y="345" text-anchor="end">Barbers, beauty</text>
+  <rect class="fig-2-c11" x="216" y="332" width="356" height="18" rx="3" />
+  <rect class="fig-2-c12" x="574" y="332" width="42" height="18" rx="3" />
+  <text class="fig-2-c6" x="626" y="345">20.0 %</text>
+  <text class="fig-2-c7" x="678" y="345">above · 89 % covered</text>
+
+  <line class="fig-2-c10" x1="216" y1="120" x2="216" y2="372" />
+
+  <text class="fig-2-c4" x="24" y="414">Shares above the authorization: measured on replayed real traffic over twelve weeks, before the change. Coverage: my calculation. Percentages only.</text>
+  <text class="fig-2-c4" x="24" y="430">Covered = settled at or below the authorization plus 25 %. The reserve applies at the five tip categories, so "All purchases" has no split.</text>
+</svg></div><figcaption>Share of settled purchases that settled above their authorization, by merchant category, measured on replayed real traffic over twelve weeks, before the change. The accent part is what a 25 % reserve would cover, by my calculation; a larger accent share is better. The dark part would still be above the reserve and is logged.</figcaption></figure><h2 id="constraints"><a class="h-anchor" href="#constraints" aria-label="Link to this section">#</a>Constraints</h2>
+<p>I solely own every technical decision on this work. AI sessions were my tool for research, code and tests. I chose between the approaches the sessions proposed and rejected several. A separate AI session that did not write the code reviewed it.</p>
+<p>Every end-to-end test replays a captured processor message, byte for byte, with only identifiers scrubbed. The fuel status-check request did not exist anywhere in our records. So I first logged the real-time request and captured the real one from it. I turned the capture into a test message, and only then designed the rule. Unit tests and property tests cover the arithmetic separately.</p>
+<p>The ledger lives in PostgreSQL. Money writes must be safe under concurrency by their SQL shape, never by discipline. A balance is changed by a relative update. A decision is made only from values read after the row lock. Schema changes must never block the running service. Replayed traffic cannot exercise the real-time decision, so only a card run against the running service can exercise the full fix.</p>
+<p>One processor fact decided where to act. The processor declines a purchase on its own if the real-time decision does not answer within a few seconds. So every approved purchase has passed through our decision. The decision is the one place that can reserve more.</p>
+<h2 id="options-and-decisions"><a class="h-anchor" href="#options-and-decisions" aria-label="Link to this section">#</a>Options and decisions</h2>
+<p><strong class="label">How much to reserve at tip merchants.</strong> The card networks publish a tip tolerance above the authorization. I considered one global rate of 25 %, a rate of 30 %, and a rate per merchant category. I chose one global 25 % at five categories: restaurants, fast food, taxis, bars, and barbers and beauty. It is a deliberate average, changeable in one place. Per-category rates would have been tuning before measuring. The captured restaurant tip was 30 %, so it exceeds the reserve by 0.50 on a 10.00 bill. The report catches that case, which is the point of having one.</p>
+<p><strong class="label">What to do about fuel.</strong> The options were a fixed reserve on every status check, a reserve capped at the account balance, or declining every status check. Declining all fuel blocks a legitimate purchase for every cardholder. Capping at the balance approves the 1.00 and then lets the pump run to whatever the balance is. That is the same liability shape with a different number. I chose a fixed buffer on top of the 1.00, released as soon as the authorization advice with the real amount is stored. The consequence is accepted: a card whose balance or daily limit cannot cover the fixed buffer cannot start fuel at a dispenser. I set both numbers as an interim choice, changeable in one place, and the business later confirmed them.</p>
+<p><strong class="label">Decide once, store it on the purchase.</strong> The reserve is decided when the purchase is first seen, at the decision or at the first transaction message, and stored on the purchase record. <strong class="mark">Later messages read the stored value and never compute a new one.</strong> Two facts forced this. First, the processor's authorization advice can carry a different merchant category than the original authorization, so the category cannot be read again later. Second, an experiment showed a pending purchase being given a new buffer when the rate changed between the decision and the message. That would move money for a purchase that was already approved under the old rule.</p>
+<pre><code class="language-python">def buffer_for(first_message, account):
+    if first_message.merchant_category in TIP_MERCHANT_CATEGORIES:
+        return Buffer(rate=Decimal(&quot;0.25&quot;), fixed=0)
+    if looks_like_fuel_status_check(first_message):   # category, authorization, hold == 1.00
+        return Buffer(rate=Decimal(&quot;0&quot;), fixed=FUEL_BUFFER)
+    return Buffer(rate=Decimal(&quot;0&quot;), fixed=0)
+
+def on_first_seen(purchase, message, account):
+    purchase.buffer = buffer_for(message, account)     # stored once
+    reserve(account, message.hold + purchase.buffer.applied_to(message.hold))
+
+def on_later_message(purchase, message, account):
+    buffer = purchase.buffer                            # read, never recomputed
+    if message.has_authorization_advice:
+        buffer = buffer.without_fixed()                 # the real amount is known now
+    re_reserve(account, message.hold + buffer.applied_to(message.hold))
+</code></pre>
+<p>Where &quot;advice seen&quot; comes from also mattered. The question &quot;has the real amount arrived?&quot; is answered from the stored event history, never from the current message alone. The current message's events are stored first. Every message then decides from the same history, whatever it carries.</p>
+<p><strong class="label">Where the rule lives.</strong> One policy module decides a new purchase's buffer, and both the real-time decision and the posting engine call it. Before, the rate was computed in four places that could drift apart.</p>
+<p><strong class="label">Log every below-zero result.</strong> I considered logging only at settlement and logging after every message. I chose every message: pending, advice and settlement. A fuel advice above the reserve is known well before the settlement. The below-zero result is written as a structured log line with the balance before and after. The line is written only when this message lowered the available balance and left it below zero. So one debt is not logged again by every later message, but a deeper debt is. The check reads the balance before and after through one shared formula, with one column read each. Balance writes are SQL additions, and an in-memory object does not hold the number until the flush. The line is written after the commit. A log line or an alert is an external call. <strong class="mark">An external call never runs while a row lock is held</strong>, and never before a commit that may still roll back. A failing write never fails the posting.</p>
+<pre><code class="language-python">def after_commit(result):
+    before, after = result.available_before, result.available_after
+    if after &lt; 0 and after &lt; before:        # this message lowered the balance below zero
+        log_below_zero(result)              # a failure here never reaches the posting
+</code></pre>
+<p><strong class="label">Processor-side rules rejected.</strong> The processor can also adjust holds by its own rules. I kept the whole buffer rule in the application. One place to read, one place to test, no second system that can disagree with the ledger.</p>
+<h2 id="the-approach"><a class="h-anchor" href="#the-approach" aria-label="Link to this section">#</a>The approach</h2>
+<p>The order of work mattered more than the amount of code.</p>
+<ol>
+<li>Log the real-time request so the fuel status check can be captured. Capture it and six other request shapes as test messages.</li>
+<li>Make the real-time decision check, report and reserve one amount, hold plus buffer plus fee, with the rate stored per purchase. The buffer counts toward the daily limit.</li>
+<li>Add the below-zero log line on every path that books a message, including the recovery of missed messages.</li>
+<li>Add the fuel buffer and move the whole buffer policy into one module. Add the two database checks that the buffer is never negative, and the index the advice lookup needed.</li>
+<li>Drive a card through the full fuel lifecycle against the running service.</li>
+<li>Validate the two database checks in the next release.</li>
+</ol>
+<h2 id="hard-parts"><a class="h-anchor" href="#hard-parts" aria-label="Link to this section">#</a>Hard parts</h2>
+<h3 id="the-same-purchase-looks-different-on-the-two-paths"><a class="h-anchor" href="#the-same-purchase-looks-different-on-the-two-paths" aria-label="Link to this section">#</a>The same purchase looks different on the two paths</h3>
+<p>The card processor describes one purchase in different words on the real-time request and on the transaction message. On the decision path a fuel status check is &quot;a real-time request at a fuel category with a hold of exactly 1.00&quot;. On the message path it is a pending purchase at a fuel category with a hold of exactly 1.00. Its first recorded step must be the authorization, with no advice yet. I matched each path on its own fields and never mixed the two vocabularies.</p>
+<h3 id="adding-a-check-constraint-without-locking-the-table"><a class="h-anchor" href="#adding-a-check-constraint-without-locking-the-table" aria-label="Link to this section">#</a>Adding a CHECK constraint without locking the table</h3>
+<p>The purchase table in PostgreSQL was large enough that a full scan under a write lock would stop the running service. Adding a CHECK constraint normally scans every row under exactly that lock. I added both constraints as <code>NOT VALID</code> in one release. That takes the lock only for a catalog change and enforces the rule on new rows at once. I validated them in the next release. Validation reads the old rows under a weaker lock that lets reads and writes continue. The migration connection got a five-second cap on lock waits, so a migration that cannot get its lock fails fast instead of queueing behind traffic. The result: the database now guarantees that buffer is never negative, validated on every row.</p>
+<pre><code class="language-sql">-- release N: enforce for new rows, do not scan the table
+ALTER TABLE card_purchases
+  ADD CONSTRAINT card_purchases_buffer_non_negative CHECK (buffer_fixed &gt;= 0) NOT VALID;
+
+-- release N+1: scan once, under a lock that lets reads and writes continue
+ALTER TABLE card_purchases VALIDATE CONSTRAINT card_purchases_buffer_non_negative;
+</code></pre>
+<h3 id="a-lookup-under-a-lock"><a class="h-anchor" href="#a-lookup-under-a-lock" aria-label="Link to this section">#</a>A lookup under a lock</h3>
+<p>The &quot;has the advice arrived?&quot; question read the purchase's stored history. That table was large and had no index on the purchase identifier. The lookup was a sequential scan, roughly 130 to 510 ms measured twice against the running service. It ran while the account row was locked, so every other operation on that account waited for it. An index on the purchase identifier fixed it. On a copy of the table of the same size the same lookup went from 28 ms to well under a millisecond.</p>
+<h2 id="before-and-after"><a class="h-anchor" href="#before-and-after" aria-label="Link to this section">#</a>Before and after</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Before</th>
+<th>After</th>
+<th>Label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Over-settlement at tip merchants</td>
+<td>Booked below zero, unreported</td>
+<td>70 to 89 % of over-settlements per tip category would fit inside the reserve</td>
+<td>My calculation on replayed real traffic from before the change</td>
+</tr>
+<tr>
+<td>Fuel status check</td>
+<td>Approved at the asked 1.00</td>
+<td>1.00 plus the fixed buffer reserved; the buffer is released when the advice arrives</td>
+<td>Recorded during the end-to-end run</td>
+</tr>
+<tr>
+<td>A message that leaves a balance below zero</td>
+<td>Silent</td>
+<td>Logged with the balance before and after, on every posting path; one line for an advice that crossed zero, none for one that landed exactly on zero</td>
+<td>Recorded during the end-to-end run</td>
+</tr>
+<tr>
+<td>Database guarantee on the buffer</td>
+<td>None</td>
+<td>The buffer is never negative, validated on every row</td>
+<td>Measured by a read-only query after the release</td>
+</tr>
+</tbody>
+</table></div>
+<figure><div class="fig"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 520" role="img" aria-labelledby="fig-3-i1 fig-3-i2">
+  <title id="fig-3-i1">Fuel status check lifecycle, before and after the fixed buffer</title>
+  <desc id="fig-3-i2">Before: a 1.00 status check is approved as asked and reserves 1.00; a 60.00 advice follows and the balance of 1.00 ends at minus 59.00, below zero, nothing reported; the settlement of 60.00 is booked as it is. After: the same check reserves 1.00 plus a fixed buffer; the 60.00 advice releases the buffer and holds 60.00, and the balance stays at or above zero; the settlement books 60.00 and nothing stays reserved.</desc>
+  <style>
+    .fig-3-c1{fill:#FAF7F0}
+    .fig-3-c2{fill:none;stroke:#E4DECF;stroke-width:1}
+    .fig-3-c3{font:700 15px Archivo,system-ui,sans-serif;fill:#1C1A15;letter-spacing:.04em}
+    .fig-3-c4{font:600 13px Archivo,system-ui,sans-serif;fill:#1C1A15}
+    .fig-3-c5{font:400 12px Archivo,system-ui,sans-serif;fill:#5C5748}
+    .fig-3-c6{font:400 12px Archivo,system-ui,sans-serif;fill:#8A8371}
+    .fig-3-c7{font:600 12.5px Archivo,system-ui,sans-serif;fill:#8A6D1F}
+    .fig-3-c8{font:800 15px Archivo,system-ui,sans-serif;fill:#1C1A15;letter-spacing:.03em}
+    .fig-3-c9{font:800 15px Archivo,system-ui,sans-serif;fill:#8A6D1F;letter-spacing:.03em}
+    .fig-3-c10{fill:#FAF7F0;stroke:#1C1A15;stroke-width:3}
+    .fig-3-c11{fill:#F3EEE1;stroke:#8A6D1F;stroke-width:3}
+    .fig-3-c12{stroke:#E4DECF;stroke-width:2}
+    .fig-3-c13{fill:#FAF7F0;stroke:#8A8371;stroke-width:1.5}
+    .fig-3-c14{fill:#F3EEE1;stroke:#8A6D1F;stroke-width:2}
+    .fig-3-c15{fill:#1C1A15}
+    .fig-3-c16{fill:#8A6D1F}
+    .fig-3-c17{stroke:#8A8371;stroke-width:1}
+  </style>
+  <rect class="fig-3-c1" x="0" y="0" width="960" height="520" />
+
+  <rect class="fig-3-c2" x="20" y="20" width="920" height="220" rx="8" />
+  <text class="fig-3-c3" x="36" y="48">BEFORE  ·  a 1.00 status check approved as asked, account balance 1.00</text>
+  <line class="fig-3-c12" x1="80" y1="120" x2="880" y2="120" />
+
+  <circle class="fig-3-c13" cx="160" cy="120" r="7" />
+  <text class="fig-3-c4" x="160" y="86" text-anchor="middle">1.00 status check</text>
+  <text class="fig-3-c5" x="160" y="104" text-anchor="middle">approved as asked</text>
+  <rect class="fig-3-c15" x="158" y="134" width="4" height="12" rx="1" />
+  <text class="fig-3-c5" x="160" y="166" text-anchor="middle">reserved 1.00</text>
+
+  <circle class="fig-3-c13" cx="480" cy="120" r="7" />
+  <text class="fig-3-c4" x="480" y="86" text-anchor="middle">60.00 advice</text>
+  <text class="fig-3-c5" x="480" y="104" text-anchor="middle">the pump reports the real amount</text>
+  <rect class="fig-3-c10" x="330" y="134" width="300" height="56" rx="6" />
+  <text class="fig-3-c8" x="480" y="158" text-anchor="middle">−59.00  BELOW ZERO</text>
+  <text class="fig-3-c4" x="480" y="178" text-anchor="middle">nothing reported</text>
+
+  <circle class="fig-3-c13" cx="800" cy="120" r="7" />
+  <text class="fig-3-c4" x="800" y="86" text-anchor="middle">settlement 60.00</text>
+  <text class="fig-3-c5" x="800" y="104" text-anchor="middle">booked as it is</text>
+  <text class="fig-3-c5" x="800" y="166" text-anchor="middle">balance stays at −59.00</text>
+
+  <text class="fig-3-c6" x="36" y="222">The card network's published rule leaves the issuer liable for the dispensed amount up to a published limit far above the 1.00.</text>
+
+  <rect class="fig-3-c2" x="20" y="260" width="920" height="240" rx="8" />
+  <text class="fig-3-c3" x="36" y="288">AFTER  ·  the same check reserves 1.00 plus a fixed buffer</text>
+  <line class="fig-3-c12" x1="80" y1="360" x2="880" y2="360" />
+
+  <circle class="fig-3-c14" cx="160" cy="360" r="7" />
+  <text class="fig-3-c4" x="160" y="326" text-anchor="middle">1.00 status check</text>
+  <text class="fig-3-c7" x="160" y="344" text-anchor="middle">reserves 1.00 + fixed buffer</text>
+  <rect class="fig-3-c15" x="64" y="374" width="4" height="12" rx="1" />
+  <rect class="fig-3-c16" x="70" y="374" width="188" height="12" rx="3" />
+  <text class="fig-3-c5" x="160" y="406" text-anchor="middle">reserved: 1.00 plus the buffer</text>
+
+  <circle class="fig-3-c14" cx="480" cy="360" r="7" />
+  <text class="fig-3-c4" x="480" y="326" text-anchor="middle">60.00 advice</text>
+  <text class="fig-3-c7" x="480" y="344" text-anchor="middle">buffer released, 60.00 held</text>
+  <rect class="fig-3-c11" x="330" y="374" width="300" height="56" rx="6" />
+  <text class="fig-3-c9" x="480" y="398" text-anchor="middle">AT OR ABOVE ZERO</text>
+  <text class="fig-3-c4" x="480" y="418" text-anchor="middle">the 60.00 fit inside the reserve</text>
+
+  <circle class="fig-3-c14" cx="800" cy="360" r="7" />
+  <text class="fig-3-c4" x="800" y="326" text-anchor="middle">settlement 60.00</text>
+  <text class="fig-3-c5" x="800" y="344" text-anchor="middle">booked, nothing stays reserved</text>
+  <rect class="fig-3-c15" x="725" y="374" width="150" height="12" rx="3" />
+  <text class="fig-3-c5" x="800" y="406" text-anchor="middle">settled 60.00, nothing reserved</text>
+
+  <text class="fig-3-c6" x="36" y="462">Recorded in the end-to-end run: an advice above the balance produced exactly one below-zero line; an advice to exactly zero produced none.</text>
+  <text class="fig-3-c6" x="36" y="482">A status check on an account already below zero was declined.</text>
+</svg></div><figcaption>The fuel lifecycle, as recorded during the end-to-end run. Before: a 1.00 status check approved as asked, then a 60.00 advice, balance −59.00 and nothing reported. After: the check reserves 1.00 plus the fixed buffer. The advice releases the buffer and holds 60.00, and the balance stays at or above zero. The settlement books 60.00 and nothing stays reserved. The card network's published rule leaves the issuer liable up to a published limit after such a check.</figcaption></figure><h2 id="result"><a class="h-anchor" href="#result" aria-label="Link to this section">#</a>Result</h2>
+<p>The work is merged, released through the delivery pipeline, and verified end to end against the running service. In that run a 1.00 status check at a fuel category reserved the 1.00 plus the fixed buffer. A 60.00 advice released the buffer and held 60.00. The settlement booked 60.00 and released the rest. An advice above the balance produced exactly one below-zero line. An advice that left the balance at exactly zero produced none. A status check on an account already below zero was declined. Three concurrent status checks on one account were approved because the balance covered three reserves. Of two more on a smaller balance, exactly one was approved. As recorded during the run, the balances matched the journal before and after.</p>
+<p>For a cardholder this means that at a restaurant or in a taxi the approval reserves a little more than the bill. At a fuel dispenser it reserves a fixed amount until the pump reports what was dispensed. A purchase the balance cannot cover is declined at the approval. On the platform I worked on, the money at risk was measured on replayed traffic. On the older system, the report for the sponsor bank counted the real losses.</p>
+<h2 id="lessons"><a class="h-anchor" href="#lessons" aria-label="Link to this section">#</a>Lessons</h2>
+<ul>
+<li>Pin the gap with a failing test on a captured message before designing the fix. The test fixes the facts; the design argues against the facts, not against an opinion.</li>
+<li>A money rule is decided once and stored on the row it governs. Anything re-read later from a value that can change will move money for a decision already made.</li>
+<li>Add a constraint in one release and validate it in the next. The split costs one more migration and saves the running service from a table scan under a write lock.</li>
+<li>A log line or an alert is an external call. It runs after the commit and never under a row lock, and its failure never fails the posting.</li>
+<li>Measure on data you can measure again. The first measurement I made used a denominator I could not reproduce later. The numbers in this article are the ones that reproduced.</li>
+</ul>
+<h3 id="what-this-shows"><a class="h-anchor" href="#what-this-shows" aria-label="Link to this section">#</a>What this shows</h3>
+<ul>
+<li>Measuring a money leak on real traffic before designing the fix, and letting the measurement choose the scope.</li>
+<li>Deciding a money rule once, storing it with the row, and making the database guarantee it without blocking the service.</li>
+<li>Proving the fix end to end on captured messages and a real card run against the running service.</li>
+</ul>
+</div>
+<section class="end-cta"><h2 class="end-title">Let&#x27;s talk about your product.</h2><p class="end-sub">30 minutes, no obligation - see if we&#x27;re a fit.</p><div class="doors"><a class="door door-call" data-door="call" href="https://calendly.com/bogdanosinnyi">Book a call</a><a class="door" data-door="whatsapp" href="https://wa.me/34652412917?text=Hi%2C%20I%20read%20your%20case%20on%20card%20settlements%20above%20the%20authorization.%20We%20have%20a%20similar%20problem." target="_blank" rel="noopener">WhatsApp</a><a class="door" data-door="linkedin" href="https://www.linkedin.com/in/bogdanosinnyi/" target="_blank" rel="noopener">LinkedIn</a></div></section>
+</article>
+<aside class="hire-col"><div class="hire"><p class="hire-title">Have a problem like this?</p><p class="hire-sub">Pick whichever is easiest.</p><div class="doors"><a class="door door-call" data-door="call" href="https://calendly.com/bogdanosinnyi">Book a call</a><a class="door" data-door="whatsapp" href="https://wa.me/34652412917?text=Hi%2C%20I%20read%20your%20case%20on%20card%20settlements%20above%20the%20authorization.%20We%20have%20a%20similar%20problem." target="_blank" rel="noopener">WhatsApp</a><a class="door" data-door="linkedin" href="https://www.linkedin.com/in/bogdanosinnyi/" target="_blank" rel="noopener">LinkedIn</a></div></div></aside>
+</main>
+<div class="door-bar"><a class="door door-call" data-door="call" href="https://calendly.com/bogdanosinnyi">Book a call</a><a class="door" data-door="whatsapp" href="https://wa.me/34652412917?text=Hi%2C%20I%20read%20your%20case%20on%20card%20settlements%20above%20the%20authorization.%20We%20have%20a%20similar%20problem." target="_blank" rel="noopener">WhatsApp</a><a class="door" data-door="linkedin" href="https://www.linkedin.com/in/bogdanosinnyi/" target="_blank" rel="noopener">LinkedIn</a></div>
+<footer class="footer" id="contact">
+  <div class="wrap">
+    <h2>Let's talk about your product.</h2>
+    <p class="footer-sub">30 minutes, no obligation - see if we're a fit.</p>
+    <a class="btn btn-light" href="https://calendly.com/bogdanosinnyi" target="_blank" rel="noopener">Book a call on Calendly</a>
+    <div class="footer-links">
+      <a href="https://github.com/kaldown" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://www.linkedin.com/in/bogdanosinnyi/" target="_blank" rel="noopener">LinkedIn</a>
+      <a href="https://wa.me/34652412917" target="_blank" rel="noopener">WhatsApp</a>
+      <a href="mailto:bogdanosinnyi@gmail.com">bogdanosinnyi@gmail.com</a>
+    </div>
+    <div class="copyright">© 2026 Bogdan Osinnyi · bogdanosinnyi.com</div>
+  </div>
+</footer>
+</body>
+</html>

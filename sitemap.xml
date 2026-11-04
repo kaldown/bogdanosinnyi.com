@@ -1,4 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://bogdanosinnyi.com/</loc></url>
+  <url><loc>https://bogdanosinnyi.com/cases/</loc></url>
+  <url><loc>https://bogdanosinnyi.com/cases/card-settlement-above-authorization-negative-balance/</loc></url>
+  <url><loc>https://bogdanosinnyi.com/cases/tags/card-issuing/</loc></url>
+  <url><loc>https://bogdanosinnyi.com/cases/tags/concurrency/</loc></url>
+  <url><loc>https://bogdanosinnyi.com/cases/tags/money-correctness/</loc></url>
+  <url><loc>https://bogdanosinnyi.com/cases/tags/payments/</loc></url>
+  <url><loc>https://bogdanosinnyi.com/cases/tags/postgresql/</loc></url>
+  <url><loc>https://bogdanosinnyi.com/cases/tags/python/</loc></url>
+  <url><loc>https://bogdanosinnyi.com/cases/tags/testing/</loc></url>
+  <url><loc>https://bogdanosinnyi.com/cases/tags/zero-downtime-migrations/</loc></url>
 </urlset>

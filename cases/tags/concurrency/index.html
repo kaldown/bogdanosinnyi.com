@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Concurrency - Problems I found, fixed and proved</title>
+<meta name="description" content="Cases about many requests touching the same data at once: row locks, safe updates and checks that still hold under parallel traffic.">
+<link rel="canonical" href="https://bogdanosinnyi.com/cases/tags/concurrency/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://bogdanosinnyi.com/cases/tags/concurrency/">
+<meta property="og:title" content="Concurrency - Problems I found, fixed and proved">
+<meta property="og:description" content="Cases about many requests touching the same data at once: row locks, safe updates and checks that still hold under parallel traffic.">
+<meta property="og:image" content="https://bogdanosinnyi.com/assets/og.jpg">
+<meta property="og:site_name" content="Bogdan Osinnyi">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%231C1A15'/%3E%3Ctext x='32' y='44' font-family='Georgia,serif' font-style='italic' font-size='36' fill='%23FAF7F0' text-anchor='middle'%3EB%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="/assets/fonts/fonts.css">
+<link rel="stylesheet" href="/assets/cases.css">
+<script src="/assets/cases.js" defer></script>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"CollectionPage","@id":"https://bogdanosinnyi.com/cases/tags/concurrency/","url":"https://bogdanosinnyi.com/cases/tags/concurrency/","name":"Concurrency - Problems I found, fixed and proved","description":"Cases about many requests touching the same data at once: row locks, safe updates and checks that still hold under parallel traffic.","mainEntity":{"@id":"https://bogdanosinnyi.com/cases/tags/concurrency/#list"}},{"@type":"ItemList","@id":"https://bogdanosinnyi.com/cases/tags/concurrency/#list","itemListElement":[{"@type":"ListItem","position":1,"url":"https://bogdanosinnyi.com/cases/card-settlement-above-authorization-negative-balance/","name":"Card settlement above authorization: negative balances"}]}]}</script>
+</head>
+<body class="index-page">
+<nav class="nav">
+  <div class="nav-in">
+    <a class="nav-name" href="/">Bogdan Osinnyi</a>
+    <div class="nav-links">
+      <a href="/#work">Work</a>
+      <a href="/#way">How I work</a>
+      <a href="/#about">About</a>
+      <a href="/#stories">Stories</a>
+      <a href="/#contact">Contact</a>
+      <span class="nav-sep" aria-hidden="true"></span>
+      <a class="nav-page" href="/cases/" aria-current="true">Cases <span aria-hidden="true">→</span></a>
+      <a class="btn btn-dark" href="https://calendly.com/bogdanosinnyi" target="_blank" rel="noopener">Book a call</a>
+    </div>
+  </div>
+</nav>
+<main class="wrap index-main">
+<header class="index-head">
+<p class="eyebrow">Case studies</p>
+<h1>Concurrency</h1>
+<p class="intro">Cases about many requests touching the same data at once: row locks, safe updates and checks that still hold under parallel traffic.</p>
+</header>
+<div class="index-grid">
+<aside class="tag-side"><p class="grp">Domain</p><ul class="chips"><li><a class="chip" href="/cases/tags/card-issuing/">Card issuing<b>1</b></a></li><li><a class="chip" href="/cases/tags/payments/">Payments<b>1</b></a></li></ul><p class="grp">Problem</p><ul class="chips"><li><a class="chip on" href="/cases/tags/concurrency/" aria-current="page">Concurrency<b>1</b></a></li><li><a class="chip" href="/cases/tags/money-correctness/">Money correctness<b>1</b></a></li><li><a class="chip" href="/cases/tags/testing/">Testing<b>1</b></a></li><li><a class="chip" href="/cases/tags/zero-downtime-migrations/">Zero-downtime migrations<b>1</b></a></li></ul><p class="grp">Tech</p><ul class="chips"><li><a class="chip" href="/cases/tags/postgresql/">PostgreSQL<b>1</b></a></li><li><a class="chip" href="/cases/tags/python/">Python<b>1</b></a></li></ul></aside>
+<div class="cards">
+<article class="case-card"><h2 class="card-title"><a class="card-link" href="/cases/card-settlement-above-authorization-negative-balance/">Card settlement above authorization: negative balances</a></h2><p class="card-problem">Purchases that settled above their authorization took card balances below zero, and nothing reported it.</p><p class="card-result">70 to 89 % of over-settlements at tip merchants would fit inside the reserve, by my calculation on replayed real traffic from before the change.</p><ul class="chips"><li><a class="chip" href="/cases/tags/payments/">Payments</a></li><li><a class="chip" href="/cases/tags/card-issuing/">Card issuing</a></li><li><a class="chip" href="/cases/tags/money-correctness/">Money correctness</a></li></ul></article>
+</div>
+</div>
+</main>
+<footer class="footer" id="contact">
+  <div class="wrap">
+    <h2>Let's talk about your product.</h2>
+    <p class="footer-sub">30 minutes, no obligation - see if we're a fit.</p>
+    <a class="btn btn-light" href="https://calendly.com/bogdanosinnyi" target="_blank" rel="noopener">Book a call on Calendly</a>
+    <div class="footer-links">
+      <a href="https://github.com/kaldown" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://www.linkedin.com/in/bogdanosinnyi/" target="_blank" rel="noopener">LinkedIn</a>
+      <a href="https://wa.me/34652412917" target="_blank" rel="noopener">WhatsApp</a>
+      <a href="mailto:bogdanosinnyi@gmail.com">bogdanosinnyi@gmail.com</a>
+    </div>
+    <div class="copyright">© 2026 Bogdan Osinnyi · bogdanosinnyi.com</div>
+  </div>
+</footer>
+</body>
+</html>

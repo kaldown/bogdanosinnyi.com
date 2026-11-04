@@ -16,6 +16,9 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%231C1A15'/%3E%3Ctext x='32' y='44' font-family='Georgia,serif' font-style='italic' font-size='36' fill='%23FAF7F0' text-anchor='middle'%3EB%3C/text%3E%3C/svg%3E">
 <link rel="stylesheet" href="/assets/fonts/fonts.css">
 <!-- analytics: Cloudflare Web Analytics, enabled in CF dashboard; no tag needed -->
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Person","@id":"https://bogdanosinnyi.com/#person","name":"Bogdan Osinnyi","jobTitle":"Software Engineer","url":"https://bogdanosinnyi.com/","image":"https://bogdanosinnyi.com/assets/portrait.jpg","sameAs":["https://www.linkedin.com/in/bogdanosinnyi/","https://github.com/kaldown"]}
+</script>
 <style>
 :root{
   --bg:#FAF7F0; --ink:#1C1A15; --muted:#5C5748; --line:#E4DECF;
@@ -42,12 +45,15 @@ section, footer, header{scroll-margin-top:88px}
 .link-accent{color:var(--accent);font-weight:500}
 /* Nav */
 .nav{position:sticky;top:0;z-index:10;background:rgba(250,247,240,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
-.nav-in{display:flex;justify-content:space-between;align-items:center;padding:18px 56px;max-width:1180px;margin:0 auto}
-.nav-name{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);text-decoration:none}
+.nav-in{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:18px 56px;max-width:1180px;margin:0 auto}
+.nav-name{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);text-decoration:none;white-space:nowrap}
 .nav-links{display:flex;gap:28px;align-items:center;font-size:14px}
 .nav-links a:not(.btn){color:var(--muted);text-decoration:none}
 .nav-links a:not(.btn):hover{color:var(--ink)}
-.nav .btn{min-height:44px;padding:9px 20px;font-size:13px}
+.nav-sep{width:1px;height:20px;background:var(--line);flex:none}
+.nav-links a.nav-page{color:var(--ink);font-weight:500;white-space:nowrap}
+.nav-links a.nav-page:hover{color:var(--accent)}
+.nav .btn{min-height:44px;padding:9px 20px;font-size:13px;white-space:nowrap}
 /* Hero */
 .hero{display:flex;gap:56px;padding:72px 0 56px;align-items:center}
 .hero-text{flex:1.4}
@@ -119,7 +125,9 @@ h3{font-family:var(--serif);font-size:24px;font-weight:400;margin:0 0 6px}
 @media (max-width:900px){
   .wrap{padding:0 24px}
   .nav-in{padding:14px 24px}
-  .nav-links a:not(.btn){display:none}
+  .nav-links{gap:18px}
+  .nav-links a:not(.btn):not(.nav-page),.nav-sep{display:none}
+  .nav .btn{padding:9px 16px}
   .hero{flex-direction:column-reverse;gap:36px;padding:40px 0}
   .hero-photo{max-width:320px;align-self:flex-start}
   .stats{gap:20px 32px}
@@ -128,6 +136,13 @@ h3{font-family:var(--serif);font-size:24px;font-weight:400;margin:0 0 6px}
   .prose-row{flex-direction:column;gap:14px}
   .stories-grid{grid-template-columns:1fr}
   .footer h2{font-size:32px}
+}
+/* Small phones: name, Cases and the button share one row */
+@media (max-width:420px){
+  .nav-in{gap:10px}
+  .nav-links{gap:12px}
+  .nav-name{font-size:18px}
+  .nav .btn{padding:9px 14px}
 }
 </style>
 </head>
@@ -142,6 +157,8 @@ h3{font-family:var(--serif);font-size:24px;font-weight:400;margin:0 0 6px}
       <a href="#about">About</a>
       <a href="#stories">Stories</a>
       <a href="#contact">Contact</a>
+      <span class="nav-sep" aria-hidden="true"></span>
+      <a class="nav-page" href="/cases/">Cases <span aria-hidden="true">→</span></a>
       <a class="btn btn-dark" href="https://calendly.com/bogdanosinnyi" target="_blank" rel="noopener">Book a call</a>
     </div>
   </div>
@@ -174,6 +191,7 @@ h3{font-family:var(--serif);font-size:24px;font-weight:400;margin:0 0 6px}
 <section class="wrap section-pad" id="work">
   <div class="h2row"><h2>Problems I automated away</h2><a href="https://github.com/kaldown" target="_blank" rel="noopener" style="font-size:13px">more on GitHub →</a></div>
   <p class="section-intro">Most of my work starts the same way: a human problem, automated for good. Some of it ships to production for clients; some of it ships free to strangers - 32,000+ downloads and counting.</p>
+  <p style="margin:-24px 0 36px;font-size:15px"><a href="/cases/">Read the case studies →</a></p>
 
   <!-- To add a project: copy any <article class="project"> block below, edit the
        text, and place it where you want it - numbering is automatic (CSS counter).
@@ -316,6 +334,7 @@ h3{font-family:var(--serif);font-size:24px;font-weight:400;margin:0 0 6px}
     <div class="footer-links">
       <a href="https://github.com/kaldown" target="_blank" rel="noopener">GitHub</a>
       <a href="https://www.linkedin.com/in/bogdanosinnyi/" target="_blank" rel="noopener">LinkedIn</a>
+      <a href="https://wa.me/34652412917" target="_blank" rel="noopener">WhatsApp</a>
       <a href="mailto:bogdanosinnyi@gmail.com">bogdanosinnyi@gmail.com</a>
     </div>
     <div class="copyright">© 2026 Bogdan Osinnyi · bogdanosinnyi.com</div>
