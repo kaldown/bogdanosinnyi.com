@@ -110,11 +110,11 @@ h3{font-family:var(--serif);font-size:21px;font-weight:500;line-height:1.25;marg
 /* Reader attention: callouts and emphasis */
 .body .callout{background:var(--card);border-left:3px solid var(--accent);border-radius:0 4px 4px 0;padding:16px 20px;margin:26px 0;color:var(--ink)}
 .body .callout>:last-child{margin-bottom:0}
-.body .callout strong.label{color:var(--accent);font-weight:600}
+.body .callout strong.label{color:var(--ink);font-weight:600}
 .body .callout--problem{border-left-color:var(--ink)}
 .body .callout--problem strong.label{color:var(--ink);font-size:12px;letter-spacing:.14em;text-transform:uppercase;font-weight:700}
 .body .callout--fix{border-left-color:var(--accent)}
-.body .callout--fix strong.label{color:var(--accent)}
+.body .callout--fix strong.label{color:var(--ink);font-size:12px;letter-spacing:.14em;text-transform:uppercase;font-weight:700}
 .body strong.mark{color:var(--ink);font-weight:700}
 .body strong.label{font-weight:600}
 .body code{font-family:var(--mono);font-size:.88em;background:var(--card);border-radius:3px;padding:1px 5px}
